@@ -30,7 +30,10 @@ def check_date_range(file_path):
         # Calculate the date range
         date_range = last_date - first_date
 
-        return date_range < timedelta(days=365*2)  # True if less than 2 years
+        if date_range < timedelta(days=365*2):
+            return file_path
+        else:
+            pass
     except Exception as e:
         print(f"Error processing file {file_path}: {e}")
         return False  # In case of error, don't count the file
@@ -40,13 +43,14 @@ def process_files(folder_path):
 
     with Pool() as pool:
         results = pool.map(check_date_range, file_paths)
+        results = [item for item in results if item is not None]
 
-    return sum(results)
+    return results
 
 if __name__ == '__main__':
     # Specify the path to your 'stocks' folder
     folder_path = 'stocks'
 
     # Get the count
-    count = process_files(folder_path)
-    print(f"Number of files with less than 2 years of data: {count}")
+    names = pd.DataFrame(process_files(folder_path), columns=["Files to be deleted"])
+    names.to_csv("to_be_deleted.csv")
